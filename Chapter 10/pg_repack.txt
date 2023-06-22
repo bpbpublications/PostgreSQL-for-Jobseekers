@@ -1,0 +1,45 @@
+SELECT count(1) FROM pgbench_accounts; 
+  count 
+--------- 
+ 3000000 
+(1 row) 
+
+************************************************************
+Calling a SQL script to check the bloated size and percentage (Reference: Table bloat).
+\i bloat.sql
+ schemaname |     tblname      | real_size_pretty | bloat_size_byte_pretty | bloat_percentage
+------------+------------------+------------------+------------------------+------------------
+ public     | pgbench_accounts | 384 MB           | 5592 kB                |              1.4
+(1 row)
+
+
+Deleting 1 million rows.
+DELETE FROM pgbench_accounts WHERE aid IN (SELECT aid FROM pgbench_accounts LIMIT 1000000) ;
+DELETE 1000000
+
+Refreshing table statistics.
+ANALYZE pgbench_accounts ;
+ANALYZE
+
+Checking the bloat again.
+\i bloat.sql
+ schemaname |     tblname      | real_size_pretty | bloat_size_byte_pretty | bloat_percentage
+------------+------------------+------------------+------------------------+------------------
+ public     | pgbench_accounts | 384 MB           | 132 MB                 |             34.4
+(1 row)
+
+
+Finally, verify the table has the expected rows after the DELETE we did before.
+postgres=# SELECT count(1) FROM pgbench_accounts;
+  count
+---------
+ 2000000
+(1 row)
+
+
+********************************
+
+1.	Install the package at the operating system level. In this case, Ubuntu.
+apt install postgresql-14-repack
+2.	Create the extension in the desired database.
+CREATE EXTENSION pg_repack;

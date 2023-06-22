@@ -1,0 +1,38 @@
+postgres@ubuntu-focal:~$ pgbench -i postgres
+dropping old tables...
+creating tables...
+generating data (client-side)...
+100000 of 100000 tuples (100%) done (elapsed 0.09 s, remaining 0.00 s)
+vacuuming...
+creating primary keys...
+done in 0.35 s (drop tables 0.06 s, create tables 0.02 s, client-side generate 0.15 s, vacuum 0.07 s, primary keys 0.05 s).
+
+
+*******************
+
+postgres=# \dt
+              List of relations
+ Schema |       Name       | Type  |  Owner
+--------+------------------+-------+----------
+ public | pgbench_accounts | table | postgres
+ public | pgbench_branches | table | postgres
+ public | pgbench_history  | table | postgres
+ public | pgbench_tellers  | table | postgres
+(4 rows)
+
+
+*************************
+
+postgres@ubuntu-focal:~$ pgbench -c2 -T10 postgres
+pgbench (14.6 (Ubuntu 14.6-1.pgdg20.04+1))
+starting vacuum...end.
+transaction type: <builtin: TPC-B (sort of)>
+scaling factor: 1
+query mode: simple
+number of clients: 2
+number of threads: 1
+duration: 10 s
+number of transactions actually processed: 10706
+latency average = 1.867 ms
+initial connection time = 8.549 ms
+tps = 1071.369350 (without initial connection time)

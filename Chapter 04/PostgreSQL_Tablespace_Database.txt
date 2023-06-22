@@ -1,0 +1,3 @@
+CREATE TABLESPACE newspace LOCATION '/ssd1/postgres/newspace';
+
+CREATE DATABASE <database_name>;

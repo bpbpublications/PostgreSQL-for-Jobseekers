@@ -1,0 +1,12 @@
+restore_command = 'cp /mnt/server/archivedir/%f "%p"'
+restore_command = 'copy "C:\\server\\archivedir\\%f" "%p"' #Windows
+
+
+# Primary
+wal_level = 'replica'
+archive_mode = 'on'
+archive_command =  'test ! -f /mnt/server/archivedir/%f && cp %p /mnt/server/archivedir/%f'
+
+# Standby
+hot_standby = 'on' 
+restore_command = 'cp /mnt/server/archivedir/%f "%p"'

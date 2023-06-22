@@ -1,0 +1,110 @@
+**************************************************************************
+
+CREATE TABLE test.emp_hist(
+    operation         char(1)   NOT NULL,
+    date_time         timestamp NOT NULL,
+    userid            text      NOT NULL,
+    emp_id	            numeric      NOT NULL,
+   	emp_name		 varchar(100),
+	birth_date		 date,
+	salary		 numeric(9,2),
+	dept_no		 numeric
+);
+
+
+
+**************************************************************************
+CREATE OR REPLACE FUNCTION test.emp_trg() RETURNS trigger AS $emp_trg$
+    BEGIN
+	    IF (TG_OP = 'DELETE') THEN
+            INSERT INTO emp_hist SELECT 'D', now(), user, OLD.*;
+            RETURN OLD;
+        ELSIF (TG_OP = 'UPDATE') THEN
+			IF NEW.salary IS NULL or NEW.salary <= 0  THEN
+				RAISE EXCEPTION 'Please enter valid salary for %', NEW.emp_name;
+			END IF;
+			INSERT INTO emp_hist SELECT 'U', now(), user, OLD.*;
+			RETURN NEW;
+			
+        ELSIF (TG_OP = 'INSERT') THEN
+			IF NEW.salary IS NULL or NEW.salary <= 0  THEN
+				RAISE EXCEPTION 'Please enter valid salary for %', NEW.emp_name;
+			END IF;
+            INSERT INTO emp_hist SELECT 'I', now(), user, NEW.*;
+            RETURN NEW;
+        END IF;
+        RETURN NULL; -- result is ignored since this is an AFTER trigger
+       
+
+    END;
+$emp_trg$ LANGUAGE plpgsql;
+
+
+**************************************************************************
+CREATE TRIGGER emp_auditing
+AFTER INSERT OR UPDATE OR DELETE ON test.emp
+    FOR EACH ROW EXECUTE PROCEDURE test.emp_trg();
+
+
+**************************************************************************
+postgres=# select * from emp order by 1;
+ emp_id | emp_name | birth_date |  salary  | dept_id
+--------+----------+------------+----------+---------
+      1 | Carolina | 1988-01-15 | 50000.00 |       1
+      2 | John     | 1994-10-10 | 71009.00 |       2
+      3 | Peter    | 1996-09-02 | 65000.00 |
+      4 | Audrey   | 1996-02-29 | 68000.00 |       2
+      5 | Mollie   | 1959-07-08 | 50000.00 |
+(5 rows)
+
+
+
+postgres=# select * from emp_hist;
+ operation | date_time | userid | emp_id | emp_name | birth_date | salary | dept_no
+-----------+-----------+--------+--------+----------+------------+--------+---------
+(0 rows)
+
+
+**************************************************************************
+postgres=# insert into emp values (6,'Trigger Test Emp','1980-01-09',69000,3);
+INSERT 0 1
+postgres=# select * from emp_hist;
+ operation |         date_time          |  userid  | emp_id |     emp_name     | birth_date |  salary  | dept_no
+-----------+----------------------------+----------+--------+------------------+------------+----------+---------
+ I         | 2023-01-24 20:27:38.074769 | postgres |      6 | Trigger Test Emp | 1980-01-09 | 69000.00 |       3
+(1 row)
+
+
+**************************************************************************
+postgres=# update emp set salary = 96000 where emp_id = 6;
+UPDATE 1
+postgres=# select * from emp_hist;
+ operation |         date_time          |  userid  | emp_id |     emp_name     | birth_date |  salary  | dept_no
+-----------+----------------------------+----------+--------+------------------+------------+----------+---------
+ I         | 2023-01-24 20:27:38.074769 | postgres |      6 | Trigger Test Emp | 1980-01-09 | 69000.00 |       3
+ U         | 2023-01-24 20:29:12.715331 | postgres |      6 | Trigger Test Emp | 1980-01-09 | 69000.00 |       3
+(2 rows)
+
+postgres=# select * from emp where emp_id=6;
+ emp_id |     emp_name     | birth_date |  salary  | dept_id
+--------+------------------+------------+----------+---------
+      6 | Trigger Test Emp | 1980-01-09 | 96000.00 |       3
+(1 row)
+
+**************************************************************************
+
+postgres=# delete from emp where emp_id = 6;
+DELETE 1
+postgres=# select * from emp_hist;
+ operation |         date_time          |  userid  | emp_id |     emp_name     | birth_date |  salary  | dept_no
+-----------+----------------------------+----------+--------+------------------+------------+----------+---------
+ I         | 2023-01-24 20:27:38.074769 | postgres |      6 | Trigger Test Emp | 1980-01-09 | 69000.00 |       3
+ U         | 2023-01-24 20:29:12.715331 | postgres |      6 | Trigger Test Emp | 1980-01-09 | 69000.00 |       3
+ D         | 2023-01-24 20:31:45.24357  | postgres |      6 | Trigger Test Emp | 1980-01-09 | 96000.00 |       3
+(3 rows)
+
+
+postgres=# select * from emp where emp_id=6;
+ emp_id | emp_name | birth_date | salary | dept_id
+--------+----------+------------+--------+---------
+(0 rows)

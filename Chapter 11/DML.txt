@@ -1,0 +1,38 @@
+****************************************************
+dept table:
+****************************************************
+insert into dept values (1,’HR’,’Human Resource Dept’);
+insert into dept (dept_id, dept_name, dept_desc) values (2,’IT’,’Information Technology Dept’);
+insert into dept  (dept_id, dept_name, dept_desc) select 3,’Sales’,dept_desc from dept where dept_id=1;
+
+****************************************************
+emp table:
+****************************************************
+ insert into emp values(1,'Carolina','01-15-1988','50000','1');
+ insert into emp (emp_id,emp_name,birth_date,salary,dept_id) values (2,'John','22-10-1994','71000',2);
+ insert into emp values (3,'Peter','09-02-1996','65000',null);
+ insert into emp values (3,'Audrey','02-29-1996','68000',2);
+ERROR:  duplicate key value violates unique constraint "emp_pkey"DETAIL:  Key (emp_id)=(3) already exists.
+
+ insert into emp values (4,'Audrey','02-29-1996','68000',2);
+ insert into emp values(5,'Mollie','07-08-1949','50000',1);
+ERROR:  new row for relation "emp" violates check constraint "emp_birth_date_check"
+DETAIL:  Failing row contains (5, Mollie, 1949-07-08, 50000.00, 1).
+
+
+ insert into emp values(5,'Mollie','07-08-1959','50000',11);
+ERROR:  insert or update on table "emp" violates foreign key constraint "emp9_dept_id_fkey"
+DETAIL:  Key (dept_id)=(11) is not present in table "dept".
+
+
+ insert into emp values(5,'Mollie','07-08-1959','50000',null);
+ 
+ 
+ 
+****************************************************
+update
+****************************************************
+ 
+ update dept 
+set dept_desc = ‘Sales & Marketing’
+where dept_id =3;

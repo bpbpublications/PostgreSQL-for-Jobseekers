@@ -1,0 +1,56 @@
+postgres@repository:~$ ssh db1 'hostname'
+db1
+postgres@repository:~$ ssh db2 'hostname'
+db2
+
+--------------------------------------------------
+pgBackRest server:
+--------------------------------------------------
+[root@repository ~]# cat /etc/pgbackrest.conf
+[global]
+repo1-path=/pgbackrest
+repo1-retention-full=2
+start-fast=y
+repo1-type=s3
+repo1-s3-bucket=pgbackrest-backups
+repo1-s3-key=<aws access key>
+repo1-s3-key-secret=<aws secret key>
+repo1-s3-token=<aws session token>
+
+[db1]
+pg1-path=/var/lib/postgresql/13/main
+pg1-host=db1
+pg1-host-user=postgres
+
+[db2]
+pg1-path=/var/lib/postgresql/14/main
+pg1-host=db2
+pg1-host-user=postgres
+
+
+--------------------------------------------------
+db1 server:
+--------------------------------------------------
+[root@db1 ~]# cat /etc/pgbackrest.conf
+[global]
+log-level-file=detail
+repo1-host=repository
+repo1-host-user=postgres
+
+[db1]
+pg1-path=/var/lib/postgresql/13/main
+
+
+--------------------------------------------------
+db2 server:
+--------------------------------------------------
+
+[root@db2 ~]# cat /etc/pgbackrest.conf
+[global]
+log-level-file=detail
+repo1-host=repository
+repo1-host-user=postgres
+
+[db2]
+pg1-path=/var/lib/postgresql/14/main
+

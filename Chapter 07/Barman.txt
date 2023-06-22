@@ -1,0 +1,55 @@
+--------------------------------------------------
+Barman server:
+--------------------------------------------------
+barman@repository:~$ cat /etc/barman.conf
+[barman]
+barman_user = barman
+configuration_files_directory = /etc/barman.d
+barman_home = /var/lib/barman
+log_file = /var/log/barman/barman.log
+log_level = INFO
+compression = gzip
+
+-----
+barman@repository:~$ cat /etc/barman.d/ssh-db[1,2].conf
+[ssh-db1]
+description =  "PostgreSQL Database db1 (via SSH)"
+ssh_command = ssh postgres@db1
+conninfo = host=db1 user=barman dbname=postgres
+backup_method = rsync
+reuse_backup = link
+backup_options = concurrent_backup
+archiver = on
+--------------
+[ssh-db2]
+description =  "PostgreSQL Database db2 (via SSH)"
+ssh_command = ssh postgres@db2
+conninfo = host=db2 user=barman dbname=postgres
+backup_method = rsync
+reuse_backup = link
+backup_options = concurrent_backup
+archiver = on
+
+
+--------------------------------------------------
+db1 and db2 servers:
+--------------------------------------------------
+postgres@db1:~$ createuser -s -P barman
+
+--------------------------------------------------
+barman@repository:~$ ssh postgres@db1 'hostname'
+db1
+barman@repository:~$ ssh postgres@db2 'hostname'
+db2
+
+
+--------------------------------------------------
+barman@repository:~$ cat /etc/barman.d/ssh-db1-new.conf
+[ssh-db1-new]
+description =  "PostgreSQL Database db1-new (via SSH)"
+ssh_command = ssh postgres@db1
+conninfo = host=db1 user=barman dbname=postgres
+backup_method = rsync
+reuse_backup = link
+backup_options = concurrent_backup
+archiver = on

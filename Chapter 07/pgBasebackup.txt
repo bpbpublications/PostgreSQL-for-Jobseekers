@@ -1,0 +1,8 @@
+postgres@ip-172-31-27-8:~$ pg_basebackup -U postgres -h localhost -x -D /usr/local/pgsql/data
+
+PITR:
+archive_mode=on
+
+archive_command = 'test ! -f /mnt/server/archivedir/%f && cp %p /mnt/server/archivedir/%f'  # Unix
+
+archive_command = 'copy "%p" "C:\\server\\archivedir\\%f"'  # Windows

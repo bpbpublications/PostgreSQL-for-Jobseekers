@@ -1,0 +1,121 @@
+************************************************************************
+Create Procedure
+************************************************************************
+
+CREATE OR REPLACE PROCEDURE P_EMP_DTLS
+(
+	P_EMP_ID IN NUMERIC,
+	P_DEPT_ID IN NUMERIC,
+	INOUT P_OUT_CURSOR REFCURSOR,
+	INOUT P_SUCCESS CHARACTER VARYING
+)
+LANGUAGE 'plpgsql'
+
+AS 
+
+$BODY$
+DECLARE
+
+	V_DEPT_EMP_CNT NUMERIC;
+
+BEGIN
+	P_SUCCESS = 'Please enter EMP_ID or DEPT_ID';
+	IF P_EMP_ID IS NOT NULL THEN
+
+		OPEN P_OUT_CURSOR FOR
+			SELECT *
+			FROM EMP E
+			WHERE E.EMP_ID = P_EMP_ID;
+		P_SUCCESS = 'EMP DETAILS';
+	END IF;
+
+	IF P_DEPT_ID IS NOT NULL THEN
+	
+	OPEN P_OUT_CURSOR FOR
+			SELECT *,GET_DEPT_CNT(P_DEPT_ID)
+			FROM EMP E
+			WHERE E.DEPT_ID = P_DEPT_ID;
+			P_SUCCESS = 'EMP DETAILS WITH DEPT COUNT';
+	END IF;
+
+
+EXCEPTION 
+
+	WHEN OTHERS THEN
+		P_SUCCESS = 'SOME ERROR OCCURRED';
+		RAISE NOTICE '%',SQLERRM;
+END;
+
+
+$BODY$;
+
+
+
+
+
+
+************************************************************************
+Executing Procedure
+************************************************************************
+
+postgres=# select * from emp;
+ emp_id | emp_name | birth_date |  salary  | dept_id
+--------+----------+------------+----------+---------
+      1 | Carolina | 1988-01-15 | 50000.00 |       1
+      2 | John     | 1994-10-10 | 71000.00 |       2
+      3 | Peter    | 1996-09-02 | 65000.00 |
+      4 | Audrey   | 1996-02-29 | 68000.00 |       2
+      5 | Mollie   | 1959-07-08 | 50000.00 |
+(5 rows)
+
+
+postgres=# BEGIN;
+BEGIN
+postgres=*# call P_EMP_DTLS (1,NULL,NULL,NULL);
+    p_out_cursor    |  p_success
+--------------------+-------------
+ <unnamed portal 1> | EMP DETAILS
+(1 row)
+
+
+postgres=*# fetch all in "<unnamed portal 1>";
+ emp_id | emp_name | birth_date |  salary  | dept_id
+--------+----------+------------+----------+---------
+      1 | Carolina | 1988-01-15 | 50000.00 |       1
+(1 row)
+
+
+postgres=*# END;
+COMMIT
+postgres=# BEGIN;
+BEGIN
+postgres=*#  call P_EMP_DTLS (NULL,1,NULL,NULL);
+    p_out_cursor    |          p_success
+--------------------+-----------------------------
+ <unnamed portal 2> | EMP DETAILS WITH DEPT COUNT
+(1 row)
+
+
+postgres=*# fetch all in "<unnamed portal 2>";
+ emp_id | emp_name | birth_date |  salary  | dept_id | get_dept_cnt
+--------+----------+------------+----------+---------+--------------
+      1 | Carolina | 1988-01-15 | 50000.00 |       1 | 1
+(1 row)
+
+
+postgres=*# END;
+COMMIT
+postgres=#
+postgres=#
+postgres=# BEGIN;
+BEGIN
+postgres=*# call P_EMP_DTLS (NULL,NULL,NULL,NULL);
+ p_out_cursor |           p_success
+--------------+--------------------------------
+              | Please enter EMP_ID or DEPT_ID
+(1 row)
+
+
+postgres=*# END;
+COMMIT
+postgres=#

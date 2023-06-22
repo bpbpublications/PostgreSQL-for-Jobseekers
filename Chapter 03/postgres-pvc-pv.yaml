@@ -1,0 +1,29 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: postgres-volume  # PV's name
+  labels:
+    type: local  # Sets PV's type to local
+    app: postgres
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 10Gi # PV Volume
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/pgdata" # Local path in the host
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres-volume-claim  # Name of PVC
+  labels:
+    app: postgres
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany  # Read and write access
+  resources:
+    requests:
+      storage: 10Gi  # Volume size

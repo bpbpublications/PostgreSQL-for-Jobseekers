@@ -1,0 +1,11 @@
+# Primary
+wal_level = 'replica'
+archive_mode = 'on'
+archive_command =  'test ! -f /mnt/server/archivedir/%f && cp %p /mnt/server/archivedir/%f' # optional
+
+# Standby
+hot_standby = 'on' 
+
+primary_conninfo = 'host=<the primary or another standby as upstream> port=5432 user=someuser password=passwd application_name=s1'
+recovery_target_timeline = 'latest'
+restore_command = 'cp /mnt/server/archivedir/%f "%p"' # optional

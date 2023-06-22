@@ -1,0 +1,16 @@
+postgres=# CREATE TYPE GENDER AS ENUM ('Male','Female','Others');
+CREATE TYPE
+postgres=# CREATE TABLE STUDENT (
+postgres(# ROLL_NO SERIAL,
+postgres(# STUDENT_NAME TEXT,
+postgres(# STUDENT_GENDER GENDER
+postgres(# );
+CREATE TABLE
+postgres=# INSERT INTO STUDENT VALUES(1,'TEST','Male');
+INSERT 0 1
+postgres=# INSERT INTO STUDENT VALUES(2,'TEST2','FeMale');
+ERROR:  invalid input value for enum gender: "FeMale"
+LINE 1: INSERT INTO STUDENT VALUES(2,'TEST2','FeMale');
+                                             ^
+postgres=# INSERT INTO STUDENT VALUES(2,'TEST2','Female');
+INSERT 0 1

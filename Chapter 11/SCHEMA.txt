@@ -1,0 +1,84 @@
+postgres=# show search_path;
+   search_path
+-----------------
+ "$user", public
+(1 row)
+
+
+****************************************************
+postgres=# create user test; 
+CREATE ROLE 
+postgres=# create schema test authorization test;
+CREATE SCHEMA 
+postgres=# \q
+
+— log in again using test user
+
+$ psql -d postgres -U test
+psql (14.7) 
+Type "help" for help. 
+
+postgres=> create table test1(n1 int);
+CREATE TABLE 
+postgres=> \dt test1 
+
+List of relations 
+Schema| Name  | Type | Owner 
+--------+------+-------+------- 
+test 	| test1 |table | test 
+(1 row)
+
+****************************************************
+$ psql ----------------- by default postgres user & postgres DB will be considered
+psql (14.7) 
+
+Type "help" for help. 
+
+
+postgres=#  insert into test1 values(2);
+ERROR:  relation "test1" does not exist
+LINE 1: insert into test1 values(2);
+                    ^
+postgres=#  insert into test.test1 values(2);
+INSERT 0 1
+postgres=# set search_path to "$user", public, test;
+SET
+postgres=# show search_path;
+      search_path
+-----------------------
+ "$user", public, test
+(1 row)
+
+
+postgres=# insert into test1 values(3);
+INSERT 0 1
+postgres=# select * from test1;
+ n1
+----
+  1
+  2
+  3
+(3 rows)
+
+
+****************************************************
+postgres=# alter role test set search_path to  "$user", public, test;
+ALTER ROLE
+postgres=# show search_path;
+   search_path
+-----------------
+ "$user", public
+(1 row)
+postgres=> \c postgres test   #connecting with test user
+psql (14.5, server 13.3)
+You are now connected to database "postgres" as user "test".
+postgres=> show search_path;
+      search_path
+-----------------------
+ "$user", public, test
+(1 row)
+
+
+postgres=>
+
+****************************************************

@@ -1,0 +1,14 @@
+Publisher Node:
+wal_level = logical
+----------------
+
+pg_hba of both the nodes:
+host     all     replication_user     192.168.80.2/32     md5
+----------------
+
+Publisher:
+CREATE PUBLICATION pub_test FOR TABLE emp, dept;
+----------------
+
+Subscription:
+CREATE SUBSCRIPTION sub_test CONNECTION 'dbname=db1 host=192.168.80.1/32 user=replication_user’ PUBLICATION pub_test;

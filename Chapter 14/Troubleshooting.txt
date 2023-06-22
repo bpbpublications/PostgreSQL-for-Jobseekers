@@ -1,0 +1,172 @@
+**********************************************************************************
+Check the PostgreSQL version
+**********************************************************************************
+
+postgres=# SELECT version();
+
+
+
+**********************************************************************************
+Check database and objects size
+**********************************************************************************
+postgres=# SELECT pg_size_pretty(pg_database_size('database_name'));
+postgres=# SELECT
+   pg_size_pretty(pg_total_relation_size('table_name'));
+   
+   
+postgres=# SELECT 
+   pg_size_pretty(pg_table_size('table_name')) AS "Table Size",
+   pg_size_pretty(pg_indexes_size('table_name')) AS "Indexes Size";
+
+**********************************************************************************
+Check database connections
+**********************************************************************************
+postgres=#  SELECT COUNT(*) AS "# of Sessions", state AS "State" FROM pg_stat_activity GROUP BY state;
+
+
+postgres=#  SELECT 
+   datname AS "Database",
+   usename AS "User", 
+   state AS "State", 
+   COUNT(*) AS "# of Sessions" 
+FROM pg_stat_activity 
+GROUP BY state, datname, usename 
+ORDER BY "Database", "User", "# of Sessions";
+
+
+
+postgres=#  SELECT 
+   datname AS "Database", 
+   usename AS "User", 
+   state AS "State", 
+   now() - backend_start AS "Session Time", 
+   now() - query_start AS "Query Time"
+FROM pg_stat_activity  
+ORDER BY "Database", "User", "Session Time";
+
+**********************************************************************************
+Check slow queries
+**********************************************************************************
+postgres=#  SELECT query, total_time 
+FROM pg_stat_statements 
+WHERE total_time > 5000 ORDER BY total_time DESC;
+
+
+**********************************************************************************
+Check statistics
+**********************************************************************************
+postgres=#  SELECT 
+   schemaname AS "Schema", relname AS "Table",
+   last_vacuum, last_autovacuum, last_analyze, last_autoanalyze 
+FROM pg_stat_user_tables ORDER BY last_vacuum DESC;
+
+postgres=#  SELECT 
+   schemaname AS "Schema", relname AS "Table", 
+   seq_scan AS "# Seq Scan", idx_scan AS "# Index Scan" 
+FROM pg_stat_user_tables ORDER BY "# Seq Scan" DESC;
+
+
+postgres=#  SELECT 
+   application_name AS "Client App Name", state AS "State", 
+   pg_current_wal_lsn() AS "Current WAL Position", 
+   replay_lsn AS "Replayed WAL Position", 
+   replay_lag AS "Replay Lag",
+   pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(),replay_lsn)) AS "Lag Size" 
+FROM pg_stat_replication ORDER BY "Lag Size"  DESC;
+
+
+**********************************************************************************
+Terminate queries or user sessions
+**********************************************************************************
+
+-- Terminate a query but keep the connection alive.
+postgres=# SELECT pg_cancel_backend(pid);
+
+-- Terminate a query and kill the connection.
+postgres=# SELECT pg_terminate_backend(pid);
+
+postgres=#  SELECT pg_terminate_backend(pid)
+  FROM pg_stat_activity 
+  WHERE usename = 'database_username';
+
+
+**********************************************************************************
+Manage Replication
+**********************************************************************************
+-- Check the replication status. 
+
+postgres=#  SELECT pg_get_wal_replay_pause_state();
+
+-- Pause an ongoing replication.
+postgres=#  SELECT pg_wal_replay_pause();
+
+-- Resume a paused replication. 
+
+postgres=#  SELECT pg_wal_replay_resume();
+
+
+-- While connected to a replica server. 
+
+postgres=#  SELECT pg_promote();
+
+
+
+
+**********************************************************************************
+systemctl 
+**********************************************************************************
+
+-- To verify the status of the PostgreSQL service
+root@:~# systemctl status postgresql
+
+-- To stop the PostgreSQL service
+root@:~# systemctl stop postgresql
+
+-- To start the PostgreSQL service
+root@:~# systemctl start postgresql
+
+-- To restart the PostgreSQL service
+root@:~# systemctl restart postgresql
+
+
+**********************************************************************************
+free
+**********************************************************************************
+-- Getting memory details in human-readable format
+root@:~# free -h
+
+
+**********************************************************************************
+df
+**********************************************************************************
+-- Getting filesystem space usage 
+
+root@:~# df -Ph
+
+**********************************************************************************
+ps/pgrep 
+**********************************************************************************
+-- Getting a list of the postgres processes with ps 
+
+root@:~# ps -fea | grep postgres
+
+-- Getting the same list pgrep 
+
+root@:~# pgrep -a postgres
+
+
+**********************************************************************************
+journalctl 
+**********************************************************************************
+-- Get all the available journal entries
+root@:~# journalctl
+
+-- Get all the available journal entries for a specific service 
+
+-- (postgresql)
+root@:~# journalctl -u postgresql
+
+-- Get the journal entries for a specific service (postgresql) 
+
+-- for the last 5 minutes
+root@:~# journalctl -u postgresql --since "5 minutes ago"

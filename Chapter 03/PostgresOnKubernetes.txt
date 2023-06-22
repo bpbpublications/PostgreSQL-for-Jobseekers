@@ -1,0 +1,10 @@
+kubectl apply -f postgres-config.yaml
+kubectl apply -f postgres-pvc-pv.yaml
+kubectl apply -f postgres-deployment.yaml
+kubectl apply -f postgres-service.yaml
+
+
+kubectl get all
+
+
+kubectl exec -it <postgres-pod-name> -- psql -h localhost -U <user-name> --password -p 5432 <db-name>

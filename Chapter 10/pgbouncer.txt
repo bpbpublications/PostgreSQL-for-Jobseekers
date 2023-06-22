@@ -1,0 +1,22 @@
+[databases]
+pg1 = host=localhost dbname=pg1 auth_user=appuser pool_size = 20
+ 
+
+[pgbouncer]
+pool_mode = session
+listen_port = 6432
+listen_addr = localhost
+auth_type = md5
+auth_file = users.txt
+logfile = pgbouncer.log
+pidfile = pgbouncer.pid
+admin_users = adminuser
+stats_users = stat_collector
+max_client_conn = 200
+
+
+
+***********************
+
+
+apt install pgbouncer

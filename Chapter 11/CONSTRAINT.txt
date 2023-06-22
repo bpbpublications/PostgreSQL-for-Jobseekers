@@ -1,0 +1,94 @@
+****************************************************
+•	dept table:
+****************************************************
+postgres=> create table dept
+postgres-> (
+postgres(>      dept_id numeric primary key,
+postgres(>      dept_name character varying(50) UNIQUE,
+postgres(>  	    dept_desc character varying(100)
+postgres(> );
+CREATE TABLE
+
+postgres=> \d+ dept
+                                              Table "test.dept"
+  Column   |          Type          | Collation | Nullable | Default | Storage  | Stats target | Description
+-----------+------------------------+-----------+----------+---------+----------+--------------+-------------
+ dept_id   | numeric                |           | not null |         | main     |              |
+ dept_name | character varying(50)  |           |          |         | extended |              |
+ dept_desc | character varying(100) |           |          |         | extended |              |
+Indexes:
+    "dept_pk1" PRIMARY KEY, btree (dept_id)
+    "dept_dept_name_key" UNIQUE CONSTRAINT, btree (dept_name)
+Access method: heap
+
+****************************************************
+•	emp table:
+****************************************************
+postgres=> CREATE TABLE emp
+postgres-> (
+postgres(>      emp_id numeric primary key,
+postgres(>      emp_name character varying(100) NOT NULL,
+postgres(>  birth_date date check (birth_date>'01-01-1950'::date),
+postgres(>      salary numeric(9,2),
+postgres(>  dept_id numeric references dept(dept_id)
+postgres(> );
+CREATE TABLE
+
+postgres=> \d+ emp
+                                              Table "test.emp9"
+   Column   |          Type          | Collation | Nullable | Default | Storage  | Stats target | Description
+------------+------------------------+-----------+----------+---------+----------+--------------+-------------
+ emp_id     | numeric                |           | not null |         | main     |              |
+ emp_name   | character varying(100) |           | not null |         | extended |              |
+ birth_date | date                   |           |          |         | plain    |              |
+ salary     | numeric(9,2)           |           |          |         | main     |              |
+ dept_id    | numeric                |           |          |         | main     |              |
+Indexes:
+    "emp_pkey" PRIMARY KEY, btree (emp_id)
+Check constraints:
+    "emp_birth_date_check" CHECK (birth_date > '1950-01-01'::date)
+Foreign-key constraints:
+    "emp_dept_id_fkey" FOREIGN KEY (dept_id) REFERENCES dept(dept_id)
+Access method: heap
+
+
+
+
+****************************************************
+Check Constraint
+****************************************************
+
+CREATE TABLE emp
+(
+	emp_id numeric primary key,
+	emp_name character varying(100) NOT NULL,
+ birth_date date check (birth_date>'01-01-1950'::date),
+	salary numeric(9,2)
+);
+
+
+
+****************************************************
+Not-Null  Constraint
+****************************************************
+CREATE TABLE emp
+(
+	emp_id numeric primary key,
+	emp_name character varying(100) NOT NULL,
+ birth_date date check (birth_date>'01-01-1950'::date),
+	salary numeric(9,2)
+);
+
+
+****************************************************
+Default  Constraint
+****************************************************
+CREATE TABLE emp
+(
+	emp_id numeric,
+	emp_name character varying(100) NOT NULL,
+ birth_date date check (birth_date>'01-01-1950'::date),
+	salary numeric(9,2) default 50000
+);
+
+

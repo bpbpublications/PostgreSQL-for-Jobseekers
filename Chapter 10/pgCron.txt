@@ -1,0 +1,38 @@
+-- Execute cleaning data custom function on Sunday at 3:00 AM GMT
+SELECT cron.schedule('0 3 * * 7', $$SELECT f_clean_data()$$);
+ schedule
+----------
+        8
+
+-- Runs vacuum daily at 5:30 AM GMT
+SELECT cron.schedule('daily-vacuum', '30 5 * * *', 'VACUUM');
+ schedule
+----------
+        9
+
+-- Stop scheduling daily-vacuum job
+SELECT cron.unschedule('daily-vacuum' );
+ unschedule 
+
+------------
+ t
+
+
+
+
+*********************************************
+
+1.	Install the required package for the PostgreSQL version on Ubuntu.
+sudo apt-get -y install postgresql-14-cron
+
+2.	The pg_cron extension requires to be pre-loaded at server startup so that it can allocate background workers. So, we need to add the next to the postgresql.conf file and restart postgres.
+# edit postgresql.conf
+shared_preload_libraries = 'pg_cron'
+
+3.	By default, the extension expects to be added to the postgres database and to schedule the jobs based on the GMT timezone. You can modify these defaults to use a different database and another timezone, for example, database prod1 and the timezone CST.
+# edit postgresql.conf
+cron.database_name = 'prod1'
+cron.timezone = 'CST'
+
+4.	Finally, once you have added the previous configuration and restarted PostgreSQL, you need to create the extension in the desired database. The following should be executed as a superuser.
+CREATE EXTENSION pg_cron;

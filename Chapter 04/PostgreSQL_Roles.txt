@@ -1,0 +1,22 @@
+CREATE ROLE demouser LOGIN PASSWORD 'supersecurepass';
+
+\h CREATE ROLE
+
+DROP ROLE demouser;
+
+SELECT * FROM pg_roles ;
+
+CREATE ROLE admins;
+
+GRANT SELECT ON public.table1 TO admins;
+GRANT SELECT ON public.table2 TO admins;
+
+GRANT admins TO demouser, testuser, produser;
+
+
+CREATE ROLE sampleuser LOGIN INHERIT;
+CREATE ROLE admin NOINHERIT;
+CREATE ROLE reader NOINHERIT;
+GRANT admin TO sampleuser;
+GRANT reader TO admin;
+

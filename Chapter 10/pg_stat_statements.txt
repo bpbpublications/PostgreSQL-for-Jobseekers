@@ -1,0 +1,54 @@
+-- Find the query with the highest total execution time
+SELECT max(total_exec_time) AS max_exec_time, query
+FROM pg_stat_statements
+GROUP BY query
+ORDER BY max_exec_time DESC LIMIT 1 ;
+   max_exec_time    |                                query
+--------------------+---------------------------------------------------------------------
+ 216302.15497300148 | UPDATE pgbench_branches SET bbalance = bbalance + $1 WHERE bid = $2
+(1 row)
+
+-- Find the query executed the most times
+SELECT max(calls) AS max_calls, query
+FROM pg_stat_statements
+GROUP BY query
+ORDER BY max_calls DESC LIMIT 1 ;
+ max_calls |                                query
+-----------+---------------------------------------------------------------------
+     72981 | UPDATE pgbench_accounts SET abalance = abalance + $1 WHERE aid = $2
+(1 row)
+
+-- Find the query which retrieved the most rows
+SELECT max(rows) AS max_rows, query
+FROM pg_stat_statements
+GROUP BY query
+ORDER BY max_rows DESC LIMIT 1 ;
+ max_rows |              query
+----------+----------------------------------
+   100000 | copy pgbench_accounts from stdin
+(1 row)
+
+-- Find the query with the worst cache hit ratio (most reads from disk)
+SELECT min(100.0 * shared_blks_hit/nullif(shared_blks_hit + shared_blks_read, 0)) hitratio,
+       substr(query,0,50) query
+FROM pg_stat_statements
+GROUP BY query
+ORDER BY hitratio ASC NULLS LAST LIMIT 1 ;
+      hitratio       |                       query
+---------------------+---------------------------------------------------
+ 84.6153846153846154 | SELECT e.extname AS "Name", e.extversion AS "Vers
+(1 row)
+
+
+
+**************************************
+
+# edit postgresql.conf
+shared_preload_libraries = 'pg_stat_statements'
+
+
+# edit postgresql.conf
+pg_stat_statements.max = 10000
+
+
+CREATE EXTENSION pg_stat_statements;

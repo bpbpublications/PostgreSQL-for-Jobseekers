@@ -1,0 +1,43 @@
+**************************************************************************
+ CREATE OR REPLACE RULE user_data_protect1 AS
+ ON UPDATE TO user_mst
+ WHERE OLD.user_name = ‘ADMIN’
+ DO NOTHING INSTEAD
+
+ CREATE OR REPLACE RULE user_data_protect2 AS
+ ON DELETE TO user_mst
+ WHERE OLD.user_name = ‘ADMIN’
+ DO NOTHING INSTEAD
+
+**************************************************************************
+
+postgres=# SELECT * FROM USER_MST;
+ user_id |  user_name
+---------+-------------
+       1 | ADMIN
+       2 | SomeUser
+       3 | OneMoreUser
+(3 rows)
+
+
+postgres=# DELETE FROM USER_MST WHERE USER_NAME = 'ADMIN';
+DELETE 0
+postgres=# SELECT * FROM USER_MST;
+ user_id |  user_name
+---------+-------------
+       1 | ADMIN
+       2 | SomeUser
+       3 | OneMoreUser
+(3 rows)
+
+
+postgres=# UPDATE USER_MST SET USER_NAME = 'ADMIN-UPDATED' WHERE USER_ID = 1;
+UPDATE 0
+postgres=# SELECT * FROM USER_MST;
+ user_id |  user_name
+---------+-------------
+       1 | ADMIN
+       2 | SomeUser
+       3 | OneMoreUser
+(3 rows)
+

@@ -1,0 +1,10 @@
+*********************************************************************
+Create Index
+*********************************************************************
+
+—-WHERE clause with expression
+SELECT * FROM people WHERE (first_name || ' ' || last_name) = 'John Smith';
+
+—-INDEX creation with expression same as WHERE clause
+CREATE INDEX people_names ON people ((first_name || ' ' || last_name));
+

@@ -1,0 +1,47 @@
+************************************************************************
+Create Function
+************************************************************************
+CREATE OR REPLACE FUNCTION GET_DEPT_CNT(P_DEPT_ID NUMERIC)
+  RETURNS CHARACTER VARYING AS
+$BODY$ 
+
+DECLARE
+	V_DEPT_CNT CHARACTER VARYING;
+
+BEGIN
+	SELECT 	COUNT(E.DEPT_ID)
+	INTO	V_DEPT_CNT
+	FROM 	DEPT D,
+			EMP E
+	WHERE 	D.DEPT_ID = E.DEPT_ID
+	AND 	D.DEPT_ID = P_DEPT_ID;
+	
+	RETURN V_DEPT_CNT;
+	
+EXCEPTION
+	WHEN OTHERS THEN
+	RAISE NOTICE 'Some error occurred';
+END$BODY$
+  LANGUAGE plpgsql VOLATILE;
+  
+
+************************************************************************
+Calling Function
+************************************************************************
+
+#Calling function without query:
+postgres=# SELECT GET_DEPT_CNT(8);
+ get_dept_cnt
+--------------
+ 0
+(1 row)
+
+#Calling function with query:
+
+postgres=# SELECT *,GET_DEPT_CNT(DEPT_ID) FROM  DEPT;
+ dept_id | dept_name |          dept_desc          | get_dept_cnt
+---------+-----------+-----------------------------+--------------
+       1 | HR        | Human Resource Dept         | 1
+       2 | IT        | Information Technology Dept | 2
+       3 | Sales     | Sales & Marketing           | 0
+(3 rows)

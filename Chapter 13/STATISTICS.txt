@@ -1,0 +1,151 @@
+pagila=# SELECT 
+  relname AS "relation_name", 
+  relkind AS "relation_kind", 
+  reltuples AS "relation_tuples",
+  relpages AS "relation_pages", 
+  pg_size_pretty(pg_relation_size(oid)) AS "relation_size" 
+FROM pg_class 
+WHERE relname LIKE 'address%' 
+AND relkind IN ('r', 'i');
+  
+
+-[ RECORD 1 ]---+-------------
+relation_name   | address
+relation_kind   | r
+relation_tuples | 603
+relation_pages  | 8
+relation_size   | 64 kB
+-[ RECORD 2 ]---+-------------
+relation_name   | address_pkey
+relation_kind   | i
+relation_tuples | 603
+relation_pages  | 4
+relation_size   | 32 kB
+
+
+
+**********************************************************************************
+pagila=# SELECT
+  attname AS "column_name",
+  n_distinct AS "distinct_rate",
+  array_to_string(most_common_vals, E'\n') AS "most_common_values",
+  array_to_string(most_common_freqs, E'\n') AS "most_common_frequencies"
+FROM pg_stats
+WHERE tablename = 'address'
+AND attname = 'postal_code';
+
+-[ RECORD 1 ]-----------+-------------
+column_name             | postal_code
+distinct_rate           | -0.9900498
+most_common_values      |             +
+                        | 22474       +
+                        | 52137       +
+                        | 9668
+most_common_frequencies | 0.006633499 +
+                        | 0.0033167496+
+                        | 0.0033167496+
+                        | 0.0033167496
+
+
+**********************************************************************************
+pagila=# WITH total AS (SELECT count(*)::numeric cnt FROM address)
+SELECT 
+
+  postal_code, count(address.*), round(count(address.*)::numeric * 100 / total.cnt, 2) AS "percentage"
+FROM address, total
+GROUP BY address.postal_code, total.cnt
+HAVING count(address.*) > 1
+ORDER BY 2 DESC;
+
+ postal_code | count | percentage
+-------------+-------+------------
+             |     4 |       0.66
+ 22474       |     2 |       0.33
+ 52137       |     2 |       0.33
+ 9668        |     2 |       0.33
+(4 rows)
+
+
+**********************************************************************************
+pagila=# CREATE STATISTICS extsts (dependencies) ON city_id, country_id FROM city;
+pagila=# ANALYZE city;
+pagila=# SELECT 
+
+  stxname AS "ext_stats_name", 
+
+  stxkeys AS "ext_stats_columns", 
+
+  stxddependencies AS "stats_dependencies"
+FROM pg_statistic_ext JOIN pg_statistic_ext_data ON (oid = stxoid) 
+
+WHERE stxname = 'extsts';
+
+-[ RECORD 1 ]------+-----------------------------------------
+ext_stats_name     | extsts
+ext_stats_columns  | 1 3
+stats_dependencies | {"1 => 3": 1.000000, "3 => 1": 0.070000}
+
+
+
+**********************************************************************************
+
+pagila=# CREATE STATISTICS extsts2 (ndistinct) ON district, city_id, postal_code FROM address;
+pagila=# ANALYZE address;
+pagila=# SELECT 
+
+  stxname AS "ext_stats_name", 
+
+  stxkeys AS "ext_stats_columns", 
+
+  stxdndistinct AS "stats_ndistinct"
+FROM pg_statistic_ext JOIN pg_statistic_ext_data ON (oid = stxoid) 
+
+WHERE stxname = 'extsts2';
+
+  
+
+-[ RECORD 1 ]-----+--------------------------------------------------------
+ext_stats_name    | extsts2
+ext_stats_columns | 4 5 6
+stats_ndistinct   | {"4, 5": 601, "4, 6": 601, "5, 6": 601, "4, 5, 6": 601}
+
+
+
+**********************************************************************************
+pagila=# CREATE STATISTICS extsts3 (mcv) ON district, postal_code FROM address;
+pagila=# ANALYZE address;
+pagila=# SELECT itms.* 
+
+  FROM pg_statistic_ext JOIN pg_statistic_ext_data ON (oid = stxoid), pg_mcv_list_items(stxdmcv) itms 
+
+  WHERE stxname = 'extsts3';
+
+-[ RECORD 1 ]--+------------------------------
+index          | 0
+values         | {QLD,""}
+nulls          | {f,f}
+frequency      | 0.003316749585406302
+base_frequency | 2.200165562458575e-05
+-[ RECORD 2 ]--+------------------------------
+index          | 1
+values         | {Alberta,""}
+nulls          | {f,f}
+frequency      | 0.003316749585406302
+base_frequency | 2.200165562458575e-05
+-[ RECORD 3 ]--+------------------------------
+index          | 2
+values         | {"",65952}
+nulls          | {f,f}
+frequency      | 0.001658374792703151
+base_frequency | 8.250620859219656e-06
+-[ RECORD 4 ]--+------------------------------
+index          | 3
+values         | {"Abu Dhabi",41136}
+nulls          | {f,f}
+frequency      | 0.001658374792703151
+base_frequency | 5.500413906146438e-06
+...
+
+
+**********************************************************************************
+CREATE INDEX INDX_EMP_DEPT_ID ON EMP(DEPT_ID);

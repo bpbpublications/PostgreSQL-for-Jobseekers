@@ -1,0 +1,13 @@
+primary_conninfo = 'host=187.168.1.50 port=5432 user=someuser password=passwd application_name=s1'
+
+--------------------------------------------------------
+# Primary
+wal_level = 'replica'
+archive_mode = 'on'
+archive_command =  'test ! -f /mnt/servS
+
+# Standby
+hot_standby = 'on' 
+
+primary_conninfo = 'host=187.168.1.50 port=5432 user=someuser password=passwd application_name=s1'
+restore_command = 'cp /mnt/server/archivedir/%f "%p"' # optional
